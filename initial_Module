@@ -1,2 +1,72 @@
-//  The first module which creates the first hash object 
+// Define the Block structure
+Block:
+    index: integer
+    data: any
+    previousHash: string
+    hash: string
 
+// Function to initialize the genesis block
+function initializeGenesisBlock():
+    return createBlock(0, "Genesis Block", "0")
+
+// Function to create a new block
+function createBlock(index, data, previousHash):
+    block = new Block
+    block.index = index
+    block.data = data
+    block.previousHash = previousHash
+    block.hash = calculateHash(block)
+    return block
+
+// Function to calculate hash (simplified)
+function calculateHash(block):
+    // Use a real hash function in practice, like SHA-256
+    return hash(block.index + block.data + block.previousHash)
+
+// Concurrent hash container for blocks
+ConcurrentHashContainer:
+    blocks: concurrentMap<index, Block>
+
+// Initialize blockchain with concurrency support
+blockchain = new ConcurrentHashContainer
+
+// Function to add a block to the chain concurrently
+function addBlockConcurrently(data):
+    previousBlock = blockchain.blocks.get(blockchain.blocks.size() - 1)
+    newBlock = createBlock(previousBlock.index + 1, data, previousBlock.hash)
+    
+    // Concurrent update to avoid race conditions
+    blockchain.blocks.put(newBlock.index, newBlock)
+
+// Function to monitor the blockchain state
+function monitorBlockchain():
+    while true:
+        print("Current Blockchain State:")
+        for block in blockchain.blocks:
+            print("Block #" + block.index + 
+                  ", Data: " + block.data + 
+                  ", Previous Hash: " + block.previousHash + 
+                  ", Hash: " + block.hash)
+        sleep(5)  // Check every 5 seconds or some other interval
+
+// Function to transmit block state (simulated)
+function transmitBlockState(block):
+    // In real scenarios, this would involve network communication
+    print("Transmitting block #" + block.index + " state...")
+    // Here you'd typically send this block to other nodes in the network
+
+// Main function to simulate blockchain operation
+function main():
+    genesisBlock = initializeGenesisBlock()
+    blockchain.blocks.put(genesisBlock.index, genesisBlock)
+    
+    // Start monitoring in a separate thread or process
+    startThread(monitorBlockchain)
+    
+    // Add blocks concurrently
+    for i from 1 to 3:
+        addBlockConcurrently("Data " + i)
+        transmitBlockState(blockchain.blocks.get(i))  // Transmit each new block
+
+// Run the simulation
+main()
